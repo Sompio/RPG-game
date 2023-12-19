@@ -4,12 +4,18 @@ let gold = 50;
 let currentWeapon = 0;
 let fighting;
 let monsterHealth;
-let inventory = [ {name: "", type: "", damage: 0}];
+let inventory = [ {name: "Sword", type: "Weapon", damage: 10}, {
+    name: "Healing Potion", type: "Consumable", healing: 10}
+];
 
 // declaring the buttons to the respective id they have in the HTML
 const button1 = document.querySelector("#button1");
 const button2 = document.querySelector("#button2");
 const button3 = document.querySelector("#button3");
+const button4 = document.querySelector("#button4");
+const button5 = document.querySelector("#button5");
+const button6 = document.querySelector("#button6");
+
 const text = document.querySelector("#text");
 const xpTest = document.querySelector("#xpText");
 const healthText = document.querySelector("#healthText");
@@ -34,20 +40,26 @@ const lootItems = [
 const gameStatus = [
     {
         name: "town square",
-        "button text": ["Go to store", "Go to cave", "Fight dragon"],
-        "button functions" : [goStore, goCave, fightDragon],
+        "button text": ["Go to store", "Go to cave", "Fight dragon", "Inventory"],
+        "button functions" : [goStore, goCave, fightDragon, checkInventory],
         text: "You are in the town square. You see a sign that says \"store.\""
     },
     {
         name: "store",
-        "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Go to town square"],
-        "button functions" : [buyHealth, buyWeapon, goTown],
+        "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Go to town square", "Inventory"],
+        "button functions" : [buyHealthPotion, buyWeapon, goTown, checkInventory],
         text: "You enter the store"
     },
     {
         name: "cave",
-        "button text": ["Fight slime", "Fight fanged beast", "Go to town square"],
-        "button functions" : [fightSlime, fightFangedBeast, goTown],
+        "button text": ["Fight slime", "Fight fanged beast", "Go to town square", "inventory"],
+        "button functions" : [fightSlime, fightFangedBeast, goTown, checkInventory],
+        text: "You enter the cave"
+    },
+    {
+        name: "Inventory",
+        "button text": ["Fight slime", "Fight fanged beast", "Go to town square", "inventory"],
+        "button functions" : [fightSlime, fightFangedBeast, goTown, checkInventory],
         text: "You enter the cave"
     }
 ];
@@ -56,6 +68,9 @@ const gameStatus = [
 button1.onclick = goStore;
 button2.onclick = goCave;
 button3.onclick = fightDragon;
+button4.onclick = displayInventory;
+button5.onclick = switchWeapon;
+button6.onclick = useHealthPotion;
 
 function update(gameStatus) {
     console.log("working?");
@@ -95,25 +110,37 @@ function goCave() {
   update(gameStatus[2]);
 }
 
+function checkInventory() {
+    update(gameStatus[2]);
+}
+
 function fightDragon() {
   console.log("fighting dragons");
 }
 
-function buyHealth(){
+function buyHealthPotion(){
     if(gold <10) {
         console.log("Not enought gold");
         return;
     } else {
         gold -= 10;
         goldText.innerHTML = gold;
-
-        health += 10;
-        healthText.innerHTML = health;
+        let healthPotion = { name: "Health Potion", type: "Consumable", healing: 20 }
+        inventory.push(healthPotion);
+        /*health += 10;
+        healthText.innerHTML = health;*/
     }
 }
 
 function buyWeapon(){
- gold = gold - 30;
+    if(gold < 30) {
+        console.log("Not enough gold to buy weapon");
+        return;
+    }
+    const weaponToBuy = {name: "Pickaxe", type: "Weapon", damage: 8};
+    gold -= 30;
+    goldText.innerHTML = gold;
+    addItemToInventory(weaponToBuy);
 }
 
 function fightSlime() {
@@ -129,9 +156,57 @@ function dropLoot() {
     if(Math.random() < 0.5) {
         const randomIndex = Math.floor(Math.random() * lootItems.length);
         const lootItem = lootItems[randomIndex];
-        inventory.push(lootItem);
+        addItemToInventory(lootItem);
+        //inventory.push(lootItem);
         console.log(`You found a ${lootItem.name}`);
     }
+}
+
+function addItemToInventory(lootItem) {
+    inventory.push(lootItem);
+    console.log(`Added ${lootItem.name} to inventory.`);
+}
+
+function displayInventory() {
+    if(inventory.length == 0) {
+        console.log("Inventory is empty.");
+    } else {
+        console.log("Inventory:")
+        inventory.forEach(lootItem => {
+            console.log(`${lootItem.name}  \nType: ${lootItem.type}`);
+            if(lootItem.type == "Weapon") {
+                console.log(`Damage: ${lootItem.damage}`);
+            } else if(lootItem.type == "Consumable") {
+                console.log(`Healing: ${lootItem.healing}`);
+            }
+            console.log("");
+        })
+    }
+}
+
+function switchWeapon() {
+    console.log("Switched weapon");
+}
+
+function useHealthPotion() {
+    const healthPotionIndex = inventory.findIndex(lootItem => lootItem.type == "Consumable" && lootItem.name == "Healing Potion");
+    if(healthPotionIndex != -1) {
+        const healthPotion = inventory[healthPotionIndex];
+        health += healthPotion.healing;
+        healthText.innerHTML = health;
+
+        inventory.splice(healthPotionIndex, 1);
+        console.log(`You used a ${healthPotion.name} and gained ${healthPotion.healing} health`);
+    } else {
+        console.log("No health potion found in the inventory");
+    }
+
+    /*inventory.forEach(lootItem => {
+        if(lootItem.name == "Healing Potion") {
+
+        }
+    })
+    health += consum*/
 }
 
 /*
